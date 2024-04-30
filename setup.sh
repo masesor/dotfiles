@@ -35,7 +35,11 @@ echo 'alias gb="git branch"' >> ~/.zshrc
 echo 'alias gc="git checkout"' >> ~/.zshrc
 echo 'alias gbclean="git branch | grep -v \"develop.*\|master\|hotfix\|release\|main\" | xargs git branch -D"' >> ~/.zshrc
 
-echo 'alias saml="saml2aws login -a dev -p dev --session-duration=38800' >> ~/.zshrc
+echo 'alias saml="saml2aws login -a dev -p dev --session-duration=38800"' >> ~/.zshrc
+
+echo 'alias kafka-sink-monitor="~/dotfiles/kafka-sink-monitor.sh"' >> ~/.zshrc
+echo 'alias kafka-sink-task="~/dotfiles/kafka-sink-task.sh"' >> ~/.zshrc
+
 
 # Git config
 git config --global core.ignorecase false
