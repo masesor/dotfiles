@@ -38,7 +38,9 @@ echo 'alias gbclean="git branch | grep -v \"develop.*\|master\|hotfix\|release\|
 echo 'alias saml="saml2aws login -a dev -p dev --session-duration=38800"' >> ~/.zshrc
 
 echo 'alias kafka-sink-monitor="~/dotfiles/kafka-sink-monitor.sh"' >> ~/.zshrc
+echo 'alias kafka-sink-avg-lag="~/dotfiles/kafka-sink-avg-lag.sh"' >> ~/.zshrc
 echo 'alias kafka-sink-task="~/dotfiles/kafka-sink-task.sh"' >> ~/.zshrc
+echo 'alias kafka-clear-topic="~/dotfiles/kafka-clear-topic.sh"' >> ~/.zshrc
 
 
 # Git config
