@@ -37,5 +37,14 @@ echo 'alias gbclean="git branch | grep -v \"develop.*\|master\|hotfix\|release\|
 
 echo 'alias saml="saml2aws login -a dev -p dev --session-duration=38800' >> ~/.zshrc
 
+# Git config
+git config --global core.ignorecase false
+git config --global core.pager "delta"
+git config --global alias.lg "log --pretty='%C(red)%h%Creset%C(yellow)%d%Creset %s %C(cyan)(%ar)%Creset'"
+git config --global alias.new "lg master..HEAD"
+git config --global alias.missing "lg HEAD..master"
+git config --global rebase.autosquash true
+git config --global rebase.autoStash true
+git config --global rerere.enabled true
 
 sudo chsh -s $(which zsh) $(whoami)
