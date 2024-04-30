@@ -35,4 +35,7 @@ echo 'alias gb="git branch"' >> ~/.zshrc
 echo 'alias gc="git checkout"' >> ~/.zshrc
 echo 'alias gbclean="git branch | grep -v \"develop.*\|master\|hotfix\|release\|main\" | xargs git branch -D"' >> ~/.zshrc
 
+echo 'alias saml="saml2aws login -a dev -p dev --session-duration=38800' >> ~/.zshrc
+
+
 sudo chsh -s $(which zsh) $(whoami)
