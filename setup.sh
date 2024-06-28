@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export HISTFILE="/commandhistory/.zsh_history"
+
 cat bashrc.additions >> ~/.bashrc
 
 cp ./.gitmessage ~
@@ -53,4 +55,6 @@ git config --global rebase.autosquash true
 git config --global rebase.autoStash true
 git config --global rerere.enabled true
 
+
 sudo chsh -s $(which zsh) $(whoami)
+
