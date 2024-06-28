@@ -29,6 +29,8 @@ mv ~/.zshrc.bak ~/.zshrc
 # update theme
 sed -i '/^ZSH_THEME/c\ZSH_THEME="agnoster"' ~/.zshrc 
 
+echo 'export HISTFILE="/commandhistory/.zsh_history"' >> ~/.zshrc
+
 echo 'alias gp="git pull"' >> ~/.zshrc
 echo 'alias gs="git status"' >> ~/.zshrc
 echo 'alias gb="git branch"' >> ~/.zshrc
@@ -53,4 +55,6 @@ git config --global rebase.autosquash true
 git config --global rebase.autoStash true
 git config --global rerere.enabled true
 
+
 sudo chsh -s $(which zsh) $(whoami)
+
