@@ -29,7 +29,7 @@ mv ~/.zshrc.bak ~/.zshrc
 # update theme
 sed -i '/^ZSH_THEME/c\ZSH_THEME="agnoster"' ~/.zshrc 
 
-echo 'export HISTFILE="/commandhistory/.zsh_history"' >> ~/.zshrc
+# echo 'export HISTFILE="/commandhistory/.zsh_history"' >> ~/.zshrc
 
 echo 'alias gp="git pull"' >> ~/.zshrc
 echo 'alias gs="git status"' >> ~/.zshrc
