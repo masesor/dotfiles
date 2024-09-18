@@ -31,6 +31,11 @@ sed -i '/^ZSH_THEME/c\ZSH_THEME="agnoster"' ~/.zshrc
 
 # echo 'export HISTFILE="/commandhistory/.zsh_history"' >> ~/.zshrc
 
+# Set up autocomplete
+git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git ~
+echo 'source /path/to/zsh-autocomplete/zsh-autocomplete.plugin.zsh' >> ~/.zshrc
+echo "skip_global_compinit=1" >> ~/.zshenv
+
 echo 'alias gp="git pull"' >> ~/.zshrc
 echo 'alias gs="git status"' >> ~/.zshrc
 echo 'alias gb="git branch"' >> ~/.zshrc
@@ -43,6 +48,7 @@ echo 'alias kafka-sink-monitor="~/dotfiles/kafka-sink-monitor.sh"' >> ~/.zshrc
 echo 'alias kafka-sink-avg-lag="~/dotfiles/kafka-sink-avg-lag.sh"' >> ~/.zshrc
 echo 'alias kafka-sink-task="~/dotfiles/kafka-sink-task.sh"' >> ~/.zshrc
 echo 'alias kafka-clear-topic="~/dotfiles/kafka-clear-topic.sh"' >> ~/.zshrc
+echo 'alias awslogin="aws sso login --sso-session sso"' >> ~/.zshrc
 
 
 # Git config
