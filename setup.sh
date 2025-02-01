@@ -1,57 +1,103 @@
 #!/bin/bash
 
+set -e
+set -o pipefail
+
+echo "Setting up configurations..."
+
+# Append bashrc additions
 cat bashrc.additions >> ~/.bashrc
 
-cp ./.gitmessage ~
-cp ./.gitconfig ~
+# Copy essential dotfiles
+cp .gitmessage ~
+cp .gitconfig ~
 
-# powerline fonts for zsh agnoster theme
-git clone https://github.com/powerline/fonts.git
-cd fonts
-./install.sh
-cd .. && rm -rf fonts
+# Install Powerline fonts for Zsh Agnoster theme
+if [ ! -d fonts ]; then
+    git clone --depth=1 https://github.com/powerline/fonts.git
+    cd fonts
+    ./install.sh
+    cd .. && rm -rf fonts
+else
+    echo "Powerline fonts already installed."
+fi
 
-# oh-my-zsh & plugins
-wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
-zsh -c 'git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions'
-zsh -c 'git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting'
-cp ./.zshrc ~
+# Install Oh My Zsh and plugins
+if [ ! -d ~/.oh-my-zsh ]; then
+    echo "Installing Oh My Zsh..."
+    wget -qO- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | zsh || true
+else
+    echo "Oh My Zsh already installed."
+fi
 
-mv ~/.zshrc ~/.zshrc.bak
+# Install Zsh plugins
+ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
+mkdir -p "$ZSH_CUSTOM/plugins"
 
-sudo sh -c "$(wget -O- https://raw.githubusercontent.com/deluan/zsh-in-docker/master/zsh-in-docker.sh)" -- \
-    -t agnoster
+if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
+    git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+fi
 
-# remove newly created zshrc
-rm -f ~/.zshrc
-# restore saved zshrc
-mv ~/.zshrc.bak ~/.zshrc
-# update theme
-sed -i '/^ZSH_THEME/c\ZSH_THEME="agnoster"' ~/.zshrc 
+if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
+    git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+fi
 
-# echo 'export HISTFILE="/commandhistory/.zsh_history"' >> ~/.zshrc
+# Backup existing .zshrc
+if [ -f ~/.zshrc ]; then
+    mv ~/.zshrc ~/.zshrc.bak
+fi
 
-# Set up autocomplete
-git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git ~
-echo 'source /path/to/zsh-autocomplete/zsh-autocomplete.plugin.zsh' >> ~/.zshrc
-echo "skip_global_compinit=1" >> ~/.zshenv
+# Install Zsh-in-Docker with Agnoster theme
+sudo sh -c "$(wget -O- https://raw.githubusercontent.com/deluan/zsh-in-docker/master/zsh-in-docker.sh)" -- -t agnoster
 
-echo 'alias gp="git pull"' >> ~/.zshrc
-echo 'alias gs="git status"' >> ~/.zshrc
-echo 'alias gb="git branch"' >> ~/.zshrc
-echo 'alias gc="git checkout"' >> ~/.zshrc
-echo 'alias gbclean="git branch | grep -v \"develop.*\|master\|hotfix\|release\|main\" | xargs git branch -D"' >> ~/.zshrc
+# Restore .zshrc backup
+if [ -f ~/.zshrc.bak ]; then
+    mv ~/.zshrc.bak ~/.zshrc
+fi
 
-echo 'alias saml="saml2aws login -a dev -p dev --session-duration=38800"' >> ~/.zshrc
+# Set theme to Agnoster in .zshrc
+sed -i '/^ZSH_THEME/c\ZSH_THEME="agnoster"' ~/.zshrc
 
-echo 'alias kafka-sink-monitor="~/dotfiles/kafka-sink-monitor.sh"' >> ~/.zshrc
-echo 'alias kafka-sink-avg-lag="~/dotfiles/kafka-sink-avg-lag.sh"' >> ~/.zshrc
-echo 'alias kafka-sink-task="~/dotfiles/kafka-sink-task.sh"' >> ~/.zshrc
-echo 'alias kafka-clear-topic="~/dotfiles/kafka-clear-topic.sh"' >> ~/.zshrc
-echo 'alias awslogin="aws sso login --sso-session sso"' >> ~/.zshrc
+# Install Zsh Autocomplete
+if [ ! -d ~/zsh-autocomplete ]; then
+    git clone --depth 1 https://github.com/marlonrichert/zsh-autocomplete.git ~/zsh-autocomplete
+fi
 
+# Add Zsh autocomplete configuration
+if ! grep -q "zsh-autocomplete" ~/.zshrc; then
+    echo 'source ~/zsh-autocomplete/zsh-autocomplete.plugin.zsh' >> ~/.zshrc
+    echo "skip_global_compinit=1" >> ~/.zshenv
+fi
 
-# Git config
+wget https://github.com/dandavison/delta/releases/download/0.18.2/git-delta_0.18.2_arm64.deb
+sudo dpkg -i git-delta_0.18.2_arm64.deb
+rm git-delta_0.18.2_arm64.deb
+
+pnpm install --global git-checkout-interactive
+
+cp -R neovim ~/.config/nvim
+
+# Git aliases
+cat <<EOF >> ~/.zshrc
+
+# Git Aliases
+alias gp="git pull"
+alias gs="git status"
+alias gb="git branch"
+alias gc="git checkout"
+alias gbclean="git branch | grep -v \"develop.*\|master\|hotfix\|release\|main\" | xargs git branch -D"
+
+# AWS & Kafka Aliases
+alias saml="saml2aws login -a dev -p dev --session-duration=38800"
+alias kafka-sink-monitor="~/dotfiles/kafka-sink-monitor.sh"
+alias kafka-sink-avg-lag="~/dotfiles/kafka-sink-avg-lag.sh"
+alias kafka-sink-task="~/dotfiles/kafka-sink-task.sh"
+alias kafka-clear-topic="~/dotfiles/kafka-clear-topic.sh"
+alias awslogin="aws sso login --sso-session sso"
+
+EOF
+
+# Git global config
 git config --global core.ignorecase false
 git config --global core.pager "delta"
 git config --global alias.lg "log --pretty='%C(red)%h%Creset%C(yellow)%d%Creset %s %C(cyan)(%ar)%Creset'"
@@ -61,6 +107,37 @@ git config --global rebase.autosquash true
 git config --global rebase.autoStash true
 git config --global rerere.enabled true
 
+# Change default shell to Zsh
+if [ "$(basename "$SHELL")" != "zsh" ]; then
+    echo "Changing default shell to Zsh..."
+    sudo chsh -s "$(which zsh)" "$(whoami)"
+fi
 
-sudo chsh -s $(which zsh) $(whoami)
+### **Setup Tmux Configuration**
+echo "Setting up Tmux configuration..."
+cat <<EOF > ~/.tmux.conf
+# Split panes using | and -
+bind | split-window -h
+bind - split-window -v
+unbind '"'
+unbind %
 
+set -g mouse on
+
+# List of plugins
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @continuum-restore 'on'
+
+# Initialize TMUX plugin manager
+run '~/.tmux/plugins/tpm/tpm'
+EOF
+
+# Install TPM (Tmux Plugin Manager)
+if [ ! -d ~/.tmux/plugins/tpm ]; then
+    git clone --depth=1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+fi
+
+echo "Setup complete! Restart your terminal or run 'exec zsh' to apply changes."
