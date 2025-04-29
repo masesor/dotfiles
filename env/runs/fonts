@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Install Powerline fonts for Zsh Agnoster theme
+if [ ! -d fonts ]; then
+    git clone --depth=1 https://github.com/powerline/fonts.git
+    cd fonts
+    ./install.sh
+    cd .. && rm -rf fonts
+else
+    echo "Powerline fonts already installed."
+fi

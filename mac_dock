@@ -1,0 +1,87 @@
+#!/usr/bin/env zsh
+
+typeset -a APPS_TO_ADD
+APPS_TO_ADD=(
+    "Arc"
+    "Notion"
+    "Notion Calendar"
+    "Spotify"
+    "VLC"
+    "Ghostty"
+    "Cursor"
+    "Figma"
+    "ChatGPT"
+    "OpenVPN Connect"
+    "Parsec"
+    "Slack"
+    "WhatsApp"
+    "TickTick"
+    "Parallels Desktop"
+    "Mail"
+)
+
+if ! command -v dockutil >/dev/null 2>&1; then
+  echo "Error: dockutil is not installed." >&2
+  echo "Please install it first: brew install dockutil" >&2
+  exit 1
+fi
+
+find_app_path() {
+  local base_name="$1"
+  local path1="/Applications/${base_name}.app"
+  local path2="$HOME/Applications/${base_name}.app"
+
+  if [[ -d "$path1" ]]; then
+    echo "$path1"
+    return 0
+  elif [[ -d "$path2" ]]; then
+    echo "$path2"
+    return 0
+  else
+   
+  if [[ "$base_name" == "OpenVPN Connect" ]]; then
+    path1="/Applications/OpenVPN Connect.app"
+    path2="$HOME/Applications/OpenVPN Connect.app"
+    if [[ -d "$path1" ]]; then echo "$path1"; return 0; fi
+    if [[ -d "$path2" ]]; then echo "$path2"; return 0; fi
+  fi
+  
+    echo ""
+    return 1
+  fi
+}
+
+echo "Removing all existing persistent app icons..."
+if dockutil --remove all --no-restart; then
+    echo "Existing apps removed."
+else
+    echo "Warning: dockutil --remove all command failed. Continuing..." >&2
+fi
+
+echo "Adding specified applications..."
+added_count=0
+skipped_count=0
+
+for app_to_add in "${APPS_TO_ADD[@]}"; do
+  app_path=$(find_app_path "$app_to_add")
+
+  if [[ -n "$app_path" ]]; then
+    echo "Adding '$app_to_add' ($app_path)..."
+   
+    if dockutil --add "$app_path" --no-restart >/dev/null; then
+        ((added_count++))
+    else
+        echo "Warning: Failed to add '$app_to_add' using dockutil." >&2
+        ((skipped_count++))
+    fi
+  else
+    echo "Warning: Could not find application '$app_to_add'. Skipping addition." >&2
+    ((skipped_count++))
+  fi
+done
+
+echo "Addition phase complete. Added: $added_count, Skipped/Not Found: $skipped_count."
+
+echo "Restarting Dock to apply changes..."
+killall Dock
+

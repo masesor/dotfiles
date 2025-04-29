@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sudo apt -y install tmux
+fi
+
+echo "Setting up Tmux configuration..."
+cat <<EOF > ~/.tmux.conf
+# Split panes using | and -
+#bind | split-window -h
+#bind - split-window -v
+#unbind '"'
+#unbind %
+#
+#set -g mouse on
+#
+## List of plugins
+#set -g @plugin 'tmux-plugins/tpm'
+#set -g @plugin 'tmux-plugins/tmux-sensible'
+#set -g @plugin 'tmux-plugins/tmux-resurrect'
+#set -g @plugin 'tmux-plugins/tmux-continuum'
+#set -g @continuum-restore 'on'
+#
+## Initialize TMUX plugin manager
+#run '~/.tmux/plugins/tpm/tpm'
+
+# set -g default-terminal "tmux-256color"
+# set -s escape-time 0
+# set -g base-index 1
+
+# # optional -- i like C-a not C-b (pure preference)
+# unbind C-b
+# set-option -g prefix C-a
+# bind-key C-a send-prefix
+# bind-key C-l switch-client -l  #For last session
+# # bind-key C-l last-window #For last window
+
+# # vi key movement for copy/pasta mode
+# set-window-option -g mode-keys vi
+# bind -T copy-mode-vi v send-keys -X begin-selection
+# bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'
+
+# bind r source-file $XDG_CONFIG_HOME/tmux/tmux.conf \; display-message "tmux.conf reloaded"
+
+set -g default-terminal "tmux-256color"
+set -s escape-time 0
+set -g base-index 1
+
+# optional -- i like C-a not C-b (pure preference)
+unbind C-b
+set-option -g prefix C-a
+bind-key C-a send-prefix
+bind-key C-l switch-client -l  #For last session
+# bind-key C-l last-window #For last window
+
+# vi key movement for copy/pasta mode
+set-window-option -g mode-keys vi
+bind -T copy-mode-vi v send-keys -X begin-selection
+bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'
+bind -r h select-pane -L
+bind -r j select-pane -D
+bind -r k select-pane -U
+bind -r l select-pane -R
+# <WHERE YOUR TMUX CONF GOES> = XDG_CONFIG_HOME/tmux/tmux.conf
+# <WHERE YOUR TMUX CONF GOES> = ~/.tmux.conf
+bind r source-file  ~/.tmux.conf \; display-message "tmux.conf reloaded"
+
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+set -g @continuum-restore-on-startup 'true'
+run '~/.tmux/plugins/tpm/tpm'
+
+display-message "Loading tmux configuration file..."
+
+EOF
+
+# Install TPM (Tmux Plugin Manager)
+if [ ! -d ~/.tmux/plugins/tpm ]; then
+    git clone --depth=1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+fi

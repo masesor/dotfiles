@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+mkdir -p "$HOME/.config"
+ln -s "$DEV_ENV/dotfiles/neovim" "$HOME/.config/nvim"
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  echo "Running on Linux, installing neovim..."
+
+  sudo apt -y install ninja-build gettext cmake unzip curl
+  npm install -g markdownlint-cli
+  pushd ~
+  git clone https://github.com/neovim/neovim
+  cd neovim
+  git checkout stable && make CMAKE_BUILD_TYPE=RelWithDebInfo
+  sudo make install
+  popd
+fi
+
