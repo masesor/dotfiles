@@ -1,0 +1,97 @@
+#!/usr/bin/env zsh
+
+set -e
+setopt pipefail
+
+DRY_RUN="0"
+
+log() {
+  if [[ "$DRY_RUN" == "1" ]]; then
+    echo "[DRY_RUN]: $1"
+  else
+    echo "$1"
+  fi
+}
+
+execute() {
+  if [[ "$DRY_RUN" == "1" ]]; then
+    log "[DRY_RUN - EXECUTE]: $@"
+  else
+    log "EXECUTE: $@"
+    "$@"
+  fi
+}
+
+DRY_ARG=""
+SCRIPTS_ONLY="0"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry)
+      DRY_RUN="1"
+      DRY_ARG="--dry"
+      shift
+      ;;
+    --scripts-only)
+      SCRIPTS_ONLY="1"
+      shift
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      echo "Usage: $0 [--dry] [--scripts-only]"
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$DEV_ENV" ]; then
+  export DEV_ENV="$HOME/dev"
+  echo "DEV_ENV not set, defaulting to: $DEV_ENV"
+fi
+export DEV_ENV
+
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+
+log "🚀 Starting main setup..."
+if [[ "$DRY_RUN" == "1" ]]; then log "Dry run mode enabled."; fi
+if [[ "$SCRIPTS_ONLY" == "1" ]]; then log "Scripts only mode enabled (skipping OS-specific setup)."; fi
+
+if [[ "$SCRIPTS_ONLY" == "0" ]]; then
+  OS_TYPE=$(uname)
+  log "Detected OS: $OS_TYPE"
+
+  if [[ "$OS_TYPE" == "Darwin" ]]; then
+    log "--- Running macOS Specific Setup ---"
+    MAC_SETUP_SCRIPT="$SCRIPT_DIR/mac_setup"
+    if [[ -f "$MAC_SETUP_SCRIPT" ]]; then
+     
+      execute "$MAC_SETUP_SCRIPT" "$DRY_ARG"
+    else
+      log "⚠️ macOS setup script not found at $MAC_SETUP_SCRIPT. Skipping."
+    fi
+    log "--- macOS Specific Setup Complete ---"
+  elif [[ "$OS_TYPE" == "Linux" ]]; then
+    log "--- Running Linux Specific Setup ---"
+    mkdir -p $HOME/dev
+  else
+    log "Unsupported OS: $OS_TYPE. Skipping OS-specific setup."
+  fi
+else
+ 
+  log "⏩ Skipping OS-specific setup (--scripts-only specified)."
+fi
+
+log "--- Running Common Setup Script ---"
+SETUP_SCRIPT="$DEV_ENV/dotfiles/env/setup"
+if [ -f "$SETUP_SCRIPT" ]; then
+  log "⚙️ Running setup script: $SETUP_SCRIPT..."
+  execute chmod +x "$SETUP_SCRIPT"
+ 
+  execute "$SETUP_SCRIPT" "$DRY_ARG"
+else
+  log "⚠️ Common setup script not found at $SETUP_SCRIPT. Skipping."
+fi
+log "--- Common Setup Script Complete ---"
+
+log "🎉 Main setup complete! Some changes might require a terminal restart or sourcing your profile."
+

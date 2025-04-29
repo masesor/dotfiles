@@ -1,0 +1,201 @@
+#!/usr/bin/env zsh
+
+set -e
+setopt pipefail
+
+typeset -A MAS_APPS
+MAS_APPS["HotspotShield VPN"]="771076721"
+MAS_APPS["PDFgear"]="6446202844"
+MAS_APPS["XCode"]="497799835"
+MAS_APPS["Unarchiver"]="425424353"
+
+DRY_RUN="0"
+
+log() {
+  local prefix="[mac-setup]"
+  if [[ "$DRY_RUN" == "1" ]]; then
+    echo "$prefix [DRY_RUN]: $1"
+  else
+    echo "$prefix $1"
+  fi
+}
+
+execute() {
+  local prefix="[mac-setup]"
+  if [[ "$DRY_RUN" == "1" ]]; then
+    log "[DRY_RUN - EXECUTE]: $@"
+  else
+    log "EXECUTE: $@"
+    "$@"
+  fi
+}
+
+BREW_ONLY="0"
+SETUP_ONLY="0"
+MAS_ONLY="0" 
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry)
+      DRY_RUN="1"
+     
+      shift
+      ;;
+    --brew-only)
+      BREW_ONLY="1"
+      shift
+      ;;
+    --mas-only)
+      MAS_ONLY="1"
+      shift
+      ;;
+    *)
+      log "Ignoring unknown argument: $1"
+      shift
+      ;;
+  esac
+done
+
+if [[ "$BREW_ONLY" == "1" && "$MAS_ONLY" == "1" ]]; then
+  echo "[mac-setup] Error: Cannot use --brew-only and --mas-only together."
+  exit 1
+fi
+
+if [ -z "$DEV_ENV" ]; then
+  echo "[mac-setup] Error: Environment variable DEV_ENV is not set."
+  echo "[mac-setup] Ensure the parent script exports it or set it manually."
+  exit 1
+fi
+
+log "🚀 Starting macOS setup..."
+if [[ "$DRY_RUN" == "1" ]]; then log "Dry run mode enabled."; fi
+if [[ "$BREW_ONLY" == "1" ]]; then log "Brew only mode enabled."; fi
+if [[ "$MAS_ONLY" == "1" ]]; then log "MAS apps only mode enabled (skipping Brew)."; fi
+
+if [[ "$MAS_ONLY" == "0" ]]; then
+  log "--- Running Brew Setup ---"
+
+  if ! command -v brew >/dev/null 2>&1; then
+    log "🍺 Installing Homebrew..."
+    if [[ "$DRY_RUN" == "0" ]]; then
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+     
+      local brew_prefix
+      if [[ "$(uname -m)" == "arm64" ]]; then
+        brew_prefix="/opt/homebrew"
+      else
+        brew_prefix="/usr/local"
+      fi
+      echo "eval \"\$($brew_prefix/bin/brew shellenv)\"" >> "$HOME/.zprofile"
+      eval "$($brew_prefix/bin/brew shellenv)"
+    else
+      log "[DRY_RUN]: Would install Homebrew."
+      log "[DRY_RUN]: Would add brew to \$HOME/.zprofile."
+      log "[DRY_RUN]: Would eval brew shellenv."
+    fi
+  else
+    log "✅ Homebrew already installed."
+   
+    if [[ "$DRY_RUN" == "0" ]]; then
+        local brew_prefix
+        if [[ "$(uname -m)" == "arm64" ]]; then
+            brew_prefix="/opt/homebrew"
+        else
+            brew_prefix="/usr/local"
+        fi
+       
+        if ! command -v brew >/dev/null 2>&1; then
+             eval "$($brew_prefix/bin/brew shellenv)"
+        fi
+    fi
+  fi
+ 
+  log "🔄 Updating and upgrading Homebrew..."
+  execute brew update && execute brew upgrade
+
+  BREWFILE_PATH="$DEV_ENV/dotfiles/Brewfile"
+  if [[ -f "$BREWFILE_PATH" ]]; then
+    log "📦 Installing Brewfile packages from $BREWFILE_PATH..."
+    execute brew bundle --file="$BREWFILE_PATH"
+  else
+    log "⚠️ Brewfile not found at $BREWFILE_PATH. Skipping bundle install."
+  fi
+
+  log "--- Brew Setup Complete ---"
+
+  if [[ "$BREW_ONLY" == "1" ]]; then
+    log "✅ Brew setup finished (--brew-only specified)."
+    exit 0
+  fi
+else
+  log "⏩ Skipping Brew setup (--mas-only specified)."
+fi
+
+log "🛒 Installing Mac App Store apps..."
+
+SKIP_MAS_INSTALL="0"
+if ! command -v mas >/dev/null 2>&1; then
+ 
+  if command -v brew >/dev/null 2>&1; then
+     log "mas command not found. Installing mas via Homebrew..."
+     execute brew install mas
+  else
+     log "❌ mas command not found and Homebrew is not available (or was skipped). Cannot install MAS apps."
+     log "⚠️ Skipping MAS app installation."
+     SKIP_MAS_INSTALL="1"
+  fi
+else
+  log "✅ mas command already installed."
+fi
+
+if [[ "$SKIP_MAS_INSTALL" == "0" ]]; then
+  if ! mas account >/dev/null 2>&1; then
+    log "⚠️ Not logged into Mac App Store."
+    if [[ "$DRY_RUN" == "0" ]]; then
+      vared -p "[mac-setup] Enter Apple ID email to attempt sign-in (leave blank or press Ctrl+C to skip): " -c apple_id
+      echo
+
+      if [[ -n "$apple_id" ]]; then
+        log "Attempting interactive sign-in for $apple_id..."
+        log "Please enter your password when prompted by 'mas'."
+       
+        if mas signin "$apple_id"; then
+           log "✅ Successfully signed in as $(mas account)."
+        else
+           log "⚠️ Sign-in attempt failed or was cancelled. Continuing, but MAS installs might fail."
+        fi
+      else
+        log "⏩ Skipping MAS sign-in attempt. MAS installs might fail if not already logged in."
+      fi
+    else
+      log "[DRY_RUN]: Would check MAS login status."
+      log "[DRY_RUN]: If not logged in, would prompt for Apple ID and attempt 'mas signin'."
+    fi
+  else
+     execute mas account
+     log "✅ Already logged into Mac App Store."
+  fi
+ 
+  log "--- Starting MAS App Installation Loop ---"
+  for APP in "${(k@)MAS_APPS}"; do
+    APP_ID=${MAS_APPS[$APP]}
+   
+    if mas list | grep -q "\b${APP_ID}\b"; then
+      log "✅ $APP ($APP_ID) is already installed."
+    else
+      log "📲 Installing $APP ($APP_ID)..."
+      execute mas install "$APP_ID"
+    fi
+  done
+  log "--- Finished MAS App Installation Loop ---"
+
+else
+  log "⚠️ Skipping MAS app installation because 'mas' command is unavailable."
+fi
+
+log "--- MAS Apps Setup Complete ---"
+
+execute ./mac_dock
+
+log "✅ macOS setup finished!"
+

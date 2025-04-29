@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Git global config
+git config --global user.email "srose34@gmail.com"
+git config --global user.name "Sam Rose"
+git config --global core.ignorecase false
+git config --global core.pager "delta"
+git config --global alias.lg "log --pretty='%C(red)%h%Creset%C(yellow)%d%Creset %s %C(cyan)(%ar)%Creset'"
+git config --global alias.new "lg master..HEAD"
+git config --global alias.missing "lg HEAD..master"
+git config --global rebase.autosquash true
+git config --global rebase.autoStash true
+git config --global rerere.enabled true
+
+# pnpm install --global git-checkout-interactive
