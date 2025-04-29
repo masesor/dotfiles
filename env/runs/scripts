@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+mkdir -p ~/.local/scripts
+cp -R $DEV_ENV/dotfiles/.local/* ~/.local
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    sudo apt -y install fzf
+fi
