@@ -131,6 +131,8 @@ else
   log "⏩ Skipping Brew setup (--mas-only specified)."
 fi
 
+log "🔄 Copying config to .config" 
+cp -R ./env/config/aerospace ~/.config
 log "🛒 Installing Mac App Store apps..."
 
 SKIP_MAS_INSTALL="0"

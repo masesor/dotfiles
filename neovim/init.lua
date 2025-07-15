@@ -194,6 +194,16 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Quickfix navigation
+vim.keymap.set('n', ']q', ':cnext<CR>', { desc = 'Next quickfix item' })
+vim.keymap.set('n', '[q', ':cprev<CR>', { desc = 'Previous quickfix item' })
+vim.keymap.set('n', ']Q', ':clast<CR>', { desc = 'Last quickfix item' })
+vim.keymap.set('n', '[Q', ':cfirst<CR>', { desc = 'First quickfix item' })
+
+-- Quickfix window management (use <leader>c instead of <leader>q)
+vim.keymap.set('n', '<leader>co', ':copen<CR>', { desc = 'Open quickfix list' })
+vim.keymap.set('n', '<leader>cc', ':cclose<CR>', { desc = 'Close quickfix list' })
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -411,6 +421,8 @@ require('lazy').setup({
           },
         },
       }
+      require('telescope').load_extension 'file_browser'
+      vim.keymap.set('n', '<space>fb', ':Telescope file_browser path=%:p:h select_buffer=true<CR>')
 
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
