@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+mkdir -p "$HOME/.config/ghostty"
+ln -sf "$DEV_ENV/dotfiles/env/config/ghostty/config" "$HOME/.config/ghostty/config"
