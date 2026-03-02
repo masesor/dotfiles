@@ -210,6 +210,13 @@ vim.keymap.set('n', '<leader>cc', ':cclose<CR>', { desc = 'Close quickfix list' 
 -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
 -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 
+-- Copy file path to clipboard
+vim.keymap.set('n', '<leader>cp', function()
+  local path = vim.fn.expand '%'
+  vim.fn.setreg('+', path)
+  vim.notify('Copied: ' .. path)
+end, { desc = 'Copy relative path' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 

@@ -45,6 +45,7 @@ cat <<EOF > ~/.tmux.conf
 set -g default-terminal "tmux-256color"
 set -s escape-time 0
 set -g base-index 1
+set -g renumber-windows on
 
 # optional -- i like C-a not C-b (pure preference)
 unbind C-b
@@ -61,6 +62,10 @@ bind -r h select-pane -L
 bind -r j select-pane -D
 bind -r k select-pane -U
 bind -r l select-pane -R
+bind -r H resize-pane -L 5
+bind -r J resize-pane -D 5
+bind -r K resize-pane -U 5
+bind -r L resize-pane -R 5
 # <WHERE YOUR TMUX CONF GOES> = XDG_CONFIG_HOME/tmux/tmux.conf
 # <WHERE YOUR TMUX CONF GOES> = ~/.tmux.conf
 bind r source-file  ~/.tmux.conf \; display-message "tmux.conf reloaded"
@@ -71,6 +76,26 @@ set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
 set -g @continuum-restore-on-startup 'true'
 run '~/.tmux/plugins/tpm/tpm'
+
+set -g status-style bg=#14CB6E,fg=#000000
+set -g status-position bottom
+
+# Make active pane more obvious
+# Border colors
+set -g pane-border-style fg=colour238
+set -g pane-active-border-style fg=colour51
+
+# Thicker borders (tmux 3.2+)
+set -g pane-border-lines heavy
+
+# Border status bar showing pane info
+set -g pane-border-status top
+set -g pane-border-format " #{pane_index}: #{pane_current_command} "
+set -g pane-border-indicators both
+
+# Background dimming for inactive panes
+# set -g window-style 'bg=colour235'
+# set -g window-active-style 'bg=colour0'
 
 display-message "Loading tmux configuration file..."
 

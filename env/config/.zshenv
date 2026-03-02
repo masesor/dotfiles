@@ -49,6 +49,22 @@ bd() {
   fi
 }
 
+bc() {
+  local selected_branch
+  selected_branch=$(
+    git branch --list | \
+      sed 's/^\* //' | \
+      sed 's/^[[:space:]]*//' | \
+      fzf --preview 'git log --oneline --graph --decorate --branches={}' --height "50%"
+  )
+
+  if [[ -n "$selected_branch" ]]; then
+    git checkout "$selected_branch"
+  else
+    echo "No branch selected."
+  fi
+}
+
 addToPath() {
     if [[ "$PATH" != *"$1"* ]]; then
         export PATH=$PATH:$1
