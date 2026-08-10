@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sudo apt -y install tmux
+set -euo pipefail
+
+if ! command -v tmux >/dev/null 2>&1; then
+    echo "tmux is not installed. Run env/runs/linux first." >&2
+    exit 1
 fi
 
 echo "Setting up Tmux configuration..."
@@ -109,6 +112,6 @@ display-message "Loading tmux configuration file..."
 EOF
 
 # Install TPM (Tmux Plugin Manager)
-if [ ! -d ~/.tmux/plugins/tpm ]; then
-    git clone --depth=1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+    git clone --depth=1 https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 fi

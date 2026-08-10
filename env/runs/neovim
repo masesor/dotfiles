@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
+
+set -euo pipefail
+
+config_source="$DEV_ENV/dotfiles/neovim"
+config_target="$HOME/.config/nvim"
+
 mkdir -p "$HOME/.config"
-ln -s "$DEV_ENV/dotfiles/neovim" "$HOME/.config/nvim"
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  echo "Running on Linux, installing neovim..."
-
-  sudo apt -y install ninja-build gettext cmake unzip curl
-  npm install -g markdownlint-cli
-  pushd ~
-  git clone https://github.com/neovim/neovim
-  cd neovim
-  git checkout stable && make CMAKE_BUILD_TYPE=RelWithDebInfo
-  sudo make install
-  popd
+if [[ -e "$config_target" && ! -L "$config_target" ]]; then
+  backup_target="${config_target}.backup.$(date +%Y%m%d%H%M%S)"
+  echo "Backing up existing Neovim config to $backup_target"
+  mv "$config_target" "$backup_target"
 fi
 
+ln -sfn "$config_source" "$config_target"
+
+if ! command -v nvim >/dev/null 2>&1; then
+  echo "Neovim is not installed. Run env/runs/linux first." >&2
+  exit 1
+fi
+
+echo "Configured $(nvim --version | head -n 1)."
