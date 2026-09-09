@@ -15,7 +15,7 @@ fi
 # scripts
 export DEV_ENV="$DEV_ENV"
 
-grep=""
+filter=""
 dry_run="0"
 
 while [[ $# -gt 0 ]]; do
@@ -23,7 +23,7 @@ while [[ $# -gt 0 ]]; do
     if [[ "$1" == "--dry" ]]; then
         dry_run="1"
     else
-        grep="$1"
+        filter="$1"
     fi
     shift
 done
@@ -36,22 +36,34 @@ log() {
     fi
 }
 
-log "RUN: env: $env -- grep: $grep"
+log "RUN: filter: $filter"
 
-# runs_dir=$(find "$script_dir/runs" -mindepth 1 -maxdepth 1 -type f -perm +111)
-runs_dir=$(find "$script_dir/runs" -mindepth 1 -maxdepth 1 -type f \( -perm -u+x -o -perm -g+x -o -perm -o+x \))
+run_script() {
+    local script="$1"
 
-for s in $runs_dir; do
-    if echo "$s" | grep -vq "$grep"; then
-        log "grep \"$grep\" filtered out $s"
-        continue
+    if [[ -n "$filter" && "$script" != *"$filter"* ]]; then
+        log "filter \"$filter\" excluded $script"
+        return
     fi
 
-    log "running script: $s"
+    log "running script: $script"
 
     if [[ $dry_run == "0" ]]; then
-        $s
+        "$script"
     fi
-done
+}
+
+linux_script="$script_dir/runs/linux"
+if [[ "$(uname -s)" == "Linux" && -x "$linux_script" ]]; then
+    run_script "$linux_script"
+fi
+
+while IFS= read -r script; do
+    if [[ "$script" == "$linux_script" ]]; then
+        continue
+    fi
+    run_script "$script"
+done < <(find "$script_dir/runs" -mindepth 1 -maxdepth 1 -type f \
+    \( -perm -u+x -o -perm -g+x -o -perm -o+x \) | sort)
 
 echo "Setup complete! Restart your terminal or run 'exec zsh' to apply changes."

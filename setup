@@ -1,7 +1,7 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 set -e
-setopt pipefail
+set -o pipefail
 
 DRY_RUN="0"
 
@@ -15,9 +15,9 @@ log() {
 
 execute() {
   if [[ "$DRY_RUN" == "1" ]]; then
-    log "[DRY_RUN - EXECUTE]: $@"
+    log "[DRY_RUN - EXECUTE]: $*"
   else
-    log "EXECUTE: $@"
+    log "EXECUTE: $*"
     "$@"
   fi
 }
@@ -50,7 +50,7 @@ if [ -z "$DEV_ENV" ]; then
 fi
 export DEV_ENV
 
-SCRIPT_DIR=${0:A:h}
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
 log "🚀 Starting main setup..."
 if [[ "$DRY_RUN" == "1" ]]; then log "Dry run mode enabled."; fi
@@ -87,7 +87,11 @@ if [ -f "$SETUP_SCRIPT" ]; then
   log "⚙️ Running setup script: $SETUP_SCRIPT..."
   execute chmod +x "$SETUP_SCRIPT"
  
-  execute "$SETUP_SCRIPT" "$DRY_ARG"
+  if [[ -n "$DRY_ARG" ]]; then
+    execute "$SETUP_SCRIPT" "$DRY_ARG"
+  else
+    execute "$SETUP_SCRIPT"
+  fi
 else
   log "⚠️ Common setup script not found at $SETUP_SCRIPT. Skipping."
 fi

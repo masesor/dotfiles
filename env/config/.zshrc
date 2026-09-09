@@ -74,6 +74,8 @@ plugins=(
   git
   web-search
   bbedit
+  zsh-autosuggestions
+  zsh-syntax-highlighting
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -105,8 +107,9 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+if command -v pyenv >/dev/null 2>&1; then
+  eval "$(pyenv init -)"
+fi
 
 alias gc="git checkout"
 alias gb="git branch"
@@ -115,7 +118,11 @@ alias gs="git status"
 alias gci='git checkout $(git branch | fzf)'
 
 # pnpm
-export PNPM_HOME="/Users/srose/Library/pnpm"
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  export PNPM_HOME="$HOME/Library/pnpm"
+else
+  export PNPM_HOME="$HOME/.local/share/pnpm"
+fi
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -124,3 +131,4 @@ esac
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+[[ -r "$HOME/zsh-autocomplete/zsh-autocomplete.plugin.zsh" ]] && source "$HOME/zsh-autocomplete/zsh-autocomplete.plugin.zsh"

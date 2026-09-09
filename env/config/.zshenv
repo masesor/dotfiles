@@ -1,3 +1,4 @@
+skip_global_compinit=1
 VIM="nvim"
 
 DEV_ENV=$HOME/dev
@@ -85,7 +86,6 @@ addToPathFront $HOME/.local/npm/bin
 addToPathFront $HOME/.local/n/bin/
 addToPathFront $HOME/.local/apps/
 addToPathFront $DEV_ENV_HOME/dotfiles/tools
-
 
 
 
