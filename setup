@@ -50,7 +50,7 @@ if [ -z "$DEV_ENV" ]; then
 fi
 export DEV_ENV
 
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+SCRIPT_DIR=${0:A:h}
 
 log "🚀 Starting main setup..."
 if [[ "$DRY_RUN" == "1" ]]; then log "Dry run mode enabled."; fi
@@ -72,7 +72,7 @@ if [[ "$SCRIPTS_ONLY" == "0" ]]; then
     log "--- macOS Specific Setup Complete ---"
   elif [[ "$OS_TYPE" == "Linux" ]]; then
     log "--- Running Linux Specific Setup ---"
-    mkdir -p $HOME/dev
+    execute mkdir -p "$DEV_ENV"
   else
     log "Unsupported OS: $OS_TYPE. Skipping OS-specific setup."
   fi
@@ -82,7 +82,7 @@ else
 fi
 
 log "--- Running Common Setup Script ---"
-SETUP_SCRIPT="$DEV_ENV/dotfiles/env/setup"
+SETUP_SCRIPT="$SCRIPT_DIR/env/setup"
 if [ -f "$SETUP_SCRIPT" ]; then
   log "⚙️ Running setup script: $SETUP_SCRIPT..."
   execute chmod +x "$SETUP_SCRIPT"
@@ -94,4 +94,3 @@ fi
 log "--- Common Setup Script Complete ---"
 
 log "🎉 Main setup complete! Some changes might require a terminal restart or sourcing your profile."
-

@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+dry=0
+update=0
+for arg in "$@"; do
+    case "$arg" in
+        --dry|--dry-run) dry=1 ;;
+        --update) update=1 ;;
+        *) echo "Usage: $0 [--dry] [--update]" >&2; exit 1 ;;
+    esac
+done
+
+repo_url=${AI_SKILLS_REPO_URL:-https://github.com/masesor/ai-skills.git}
+checkout=${AI_SKILLS_DIR:-${DEV_ENV:-$HOME/dev}/ai-skills}
+read -r -a clients <<< "${AI_SKILLS_CLIENTS:-codex claude}"
+for client in "${clients[@]}"; do
+    case "$client" in
+        codex|claude|cursor) ;;
+        *) echo "[ai-skills] Unknown client: $client" >&2; exit 1 ;;
+    esac
+done
+
+log() { printf '[ai-skills] %s\n' "$*"; }
+skip() {
+    log "Skipped: $*"
+    log "Authenticate GitHub separately, then rerun: $0"
+    exit 0
+}
+
+# Bootstrap must not wait for credential prompts or SSH host confirmation.
+export GIT_TERMINAL_PROMPT=0
+export GCM_INTERACTIVE=Never
+export GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes'
+
+if [[ "$dry" == 1 ]]; then
+    log "Dry run: ensure $repo_url is cloned at $checkout"
+    log "Dry run: clients: ${clients[*]}; update: $update"
+    exit 0
+fi
+command -v git >/dev/null || skip 'git is required'
+command -v python3 >/dev/null || skip 'python3 is required'
+
+if [[ ! -e "$checkout" && ! -L "$checkout" ]]; then
+    mkdir -p "$(dirname "$checkout")"
+    # Clone to a sibling scratch directory, so failed authentication cannot leave
+    # a partial checkout that the next bootstrap mistakes for an installation.
+    scratch=$(mktemp -d "${checkout}.clone.XXXXXX")
+    trap 'rm -rf -- "$scratch"' EXIT
+    if [[ "$repo_url" == https://github.com/masesor/ai-skills.git ]] &&
+       command -v gh >/dev/null && gh auth status >/dev/null 2>&1; then
+        gh repo clone masesor/ai-skills "$scratch" -- --branch main || skip 'repository clone failed'
+    else
+        git clone --branch main -- "$repo_url" "$scratch" || skip 'repository access unavailable'
+    fi
+    [[ ! -e "$checkout" && ! -L "$checkout" ]] || { log 'Destination appeared during clone; refusing to replace it'; exit 1; }
+    mv -- "$scratch" "$checkout"
+    trap - EXIT
+fi
+
+[[ -d "$checkout/.git" || -f "$checkout/.git" ]] || { log "Refusing unrelated directory: $checkout"; exit 1; }
+origin=$(git -C "$checkout" remote get-url origin)
+if [[ "$origin" != "$repo_url" ]]; then
+    case "$repo_url|$origin" in
+        'https://github.com/masesor/ai-skills.git|git@github.com:masesor/ai-skills.git'|'git@github.com:masesor/ai-skills.git|https://github.com/masesor/ai-skills.git') ;;
+        *) log "Refusing checkout with a different origin: $checkout"; exit 1 ;;
+    esac
+fi
+
+if [[ "$update" == 1 ]]; then
+    [[ -z "$(git -C "$checkout" status --porcelain)" ]] || { log 'Update refused: checkout has local changes'; exit 1; }
+    [[ "$(git -C "$checkout" branch --show-current)" == main ]] || { log 'Update refused: checkout is not on main'; exit 1; }
+    git -C "$checkout" fetch origin main
+    git -C "$checkout" merge --ff-only FETCH_HEAD
+fi
+
+installer="$checkout/scripts/install.py"
+[[ -f "$installer" ]] || { log "Missing installer: $installer"; exit 1; }
+# Preflight every client before creating any links, including cross-client conflicts.
+for client in "${clients[@]}"; do
+    python3 "$installer" --client "$client" --dry-run
+done
+for client in "${clients[@]}"; do
+    python3 "$installer" --client "$client"
+done
+log "Skills ready from $checkout"
