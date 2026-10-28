@@ -30,8 +30,15 @@ if [[ ! -d "$HOME/zsh-autocomplete" ]]; then
         "$HOME/zsh-autocomplete"
 fi
 
-cp "$DEV_ENV/dotfiles/env/config/.zshenv" "$HOME/.zshenv"
-cp "$DEV_ENV/dotfiles/env/config/.zshrc" "$HOME/.zshrc"
+for config in .zshenv .zshrc; do
+    target="$HOME/$config"
+    if [[ -e "$target" || -L "$target" ]]; then
+        backup=$(mktemp "${target}.backup.XXXXXXXX")
+        cp -p "$target" "$backup"
+        echo "Backed up $target to $backup"
+    fi
+    cp "$DEV_ENV/dotfiles/env/config/$config" "$target"
+done
 
 if [[ "$(basename "$SHELL")" != "zsh" ]]; then
     echo "Changing default shell to Zsh..."

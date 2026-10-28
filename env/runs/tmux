@@ -7,7 +7,18 @@ if ! command -v tmux >/dev/null 2>&1; then
     exit 1
 fi
 
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    clipboard_command="pbcopy"
+else
+    clipboard_command="xclip -in -selection clipboard"
+fi
+
 echo "Setting up Tmux configuration..."
+if [[ -e "$HOME/.tmux.conf" || -L "$HOME/.tmux.conf" ]]; then
+    backup=$(mktemp "$HOME/.tmux.conf.backup.XXXXXXXX")
+    cp -p "$HOME/.tmux.conf" "$backup"
+    echo "Backed up $HOME/.tmux.conf to $backup"
+fi
 cat <<EOF > ~/.tmux.conf
 # Split panes using | and -
 #bind | split-window -h
@@ -60,7 +71,7 @@ bind-key C-l switch-client -l  #For last session
 # vi key movement for copy/pasta mode
 set-window-option -g mode-keys vi
 bind -T copy-mode-vi v send-keys -X begin-selection
-bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel 'xclip -in -selection clipboard'
+bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel '$clipboard_command'
 bind -r h select-pane -L
 bind -r j select-pane -D
 bind -r k select-pane -U

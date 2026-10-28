@@ -2,22 +2,16 @@
 
 typeset -a APPS_TO_ADD
 APPS_TO_ADD=(
-    "Arc"
-    "Notion"
+    "Obsidian"
     "Notion Calendar"
-    "Spotify"
-    "VLC"
-    "Ghostty"
-    "Cursor"
-    "Figma"
-    "ChatGPT"
-    "OpenVPN Connect"
-    "Parsec"
-    "Slack"
+    "Twilight"
     "WhatsApp"
-    "TickTick"
-    "Parallels Desktop"
-    "Mail"
+    "Proton Mail"
+    "Ghostty"
+    "Figma"
+    "OpenVPN Connect"
+    "ChatGPT"
+    "Spotify"
 )
 
 if ! command -v dockutil >/dev/null 2>&1; then
@@ -40,7 +34,7 @@ find_app_path() {
   else
    
   if [[ "$base_name" == "OpenVPN Connect" ]]; then
-    path1="/Applications/OpenVPN Connect.app"
+    path1="/Applications/OpenVPN Connect/OpenVPN Connect.app"
     path2="$HOME/Applications/OpenVPN Connect.app"
     if [[ -d "$path1" ]]; then echo "$path1"; return 0; fi
     if [[ -d "$path2" ]]; then echo "$path2"; return 0; fi

@@ -24,21 +24,27 @@ execute() {
 
 DRY_ARG=""
 SCRIPTS_ONLY="0"
+MAC_SETUP_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry)
       DRY_RUN="1"
       DRY_ARG="--dry"
+      MAC_SETUP_ARGS+=(--dry)
       shift
       ;;
     --scripts-only)
       SCRIPTS_ONLY="1"
       shift
       ;;
+    --with-dock)
+      MAC_SETUP_ARGS+=(--with-dock)
+      shift
+      ;;
     *)
       echo "Unknown argument: $1"
-      echo "Usage: $0 [--dry] [--scripts-only]"
+      echo "Usage: $0 [--dry] [--scripts-only] [--with-dock]"
       exit 1
       ;;
   esac
@@ -65,7 +71,7 @@ if [[ "$SCRIPTS_ONLY" == "0" ]]; then
     MAC_SETUP_SCRIPT="$SCRIPT_DIR/mac_setup"
     if [[ -f "$MAC_SETUP_SCRIPT" ]]; then
      
-      execute "$MAC_SETUP_SCRIPT" "$DRY_ARG"
+      execute "$MAC_SETUP_SCRIPT" "${MAC_SETUP_ARGS[@]}"
     else
       log "⚠️ macOS setup script not found at $MAC_SETUP_SCRIPT. Skipping."
     fi

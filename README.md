@@ -2,6 +2,8 @@
 
 Run `./setup` for platform packages and common configuration, or `./setup --scripts-only` for common configuration. `DEV_ENV` defaults to `$HOME/dev`.
 
+Dock setup is optional. Use `./setup --with-dock` to apply the pinned app list in `mac_dock`, or run `./mac_dock` directly to apply only the Dock layout. The saved order is Obsidian, Notion Calendar, Twilight, WhatsApp, Proton Mail, Ghostty, Figma, OpenVPN Connect, ChatGPT, and Spotify.
+
 ## AI skills
 
 Common setup automatically runs `env/runs/ai-skills`. It clones the private `masesor/ai-skills` repository into `$DEV_ENV/ai-skills` and runs its installer for Codex and Claude Code. Existing checkouts are reused without fetching. Cursor can discover those clients' skill directories, so separate Cursor links are unnecessary on these machines.

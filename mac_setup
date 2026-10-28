@@ -33,6 +33,7 @@ execute() {
 BREW_ONLY="0"
 SETUP_ONLY="0"
 MAS_ONLY="0" 
+WITH_DOCK="0"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -47,6 +48,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --mas-only)
       MAS_ONLY="1"
+      shift
+      ;;
+    --with-dock)
+      WITH_DOCK="1"
       shift
       ;;
     *)
@@ -132,7 +137,7 @@ else
 fi
 
 log "🔄 Copying config to .config" 
-cp -R ./env/config/aerospace ~/.config
+execute cp -R ./env/config/aerospace ~/.config
 log "🛒 Installing Mac App Store apps..."
 
 SKIP_MAS_INSTALL="0"
@@ -197,7 +202,11 @@ fi
 
 log "--- MAS Apps Setup Complete ---"
 
-execute ./mac_dock
+if [[ "$WITH_DOCK" == "1" ]]; then
+  execute "${0:A:h}/mac_dock"
+else
+  log "Skipping Dock setup. Use --with-dock to apply the saved app layout."
+fi
 
 log "✅ macOS setup finished!"
 

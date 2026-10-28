@@ -2,5 +2,6 @@
 
 set -euo pipefail
 
-mkdir -p "$HOME/.config/ghostty"
+mkdir -p "$HOME/.config/ghostty/themes"
 ln -sf "$DEV_ENV/dotfiles/env/config/ghostty/config" "$HOME/.config/ghostty/config"
+ln -sf "$DEV_ENV/dotfiles/env/config/ghostty/themes/rose-pine-moon" "$HOME/.config/ghostty/themes/rose-pine-moon"

@@ -12,7 +12,7 @@ dev_env() {
 
 }
 
-bindkey -s ^f "tmux-sessionizer\n"
+bindkey -s ^f "mf\n"
 
 catr() {
     tail -n "+$1" $3 | head -n "$(($2 - $1 + 1))"
@@ -26,7 +26,7 @@ h() {
   print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac --height "50%" | sed -E 's/ *[0-9]*\*? *//' | sed -E 's/\\/\\\\/g')
 }
 
-bd() {              
+gbd() {
   local selected_branches
   selected_branches=$(
     git branch --list | \
